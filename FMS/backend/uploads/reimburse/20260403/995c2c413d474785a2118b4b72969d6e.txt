@@ -1,0 +1,41 @@
+concat(last_name, "'", first_name)
+
+update employees
+set 
+where
+
+alter table salary rename to salary_test
+
+外键约束
+alter table audit
+add constraint foreign key (emp_no)
+references employees_test (id)
+
+replace应用
+update titles_test
+set emp_no = replace (emp_no, 10001, 10005)
+where id = 5; 
+
+触发器
+create trigger audit_log
+before insert on employees_test
+for each row
+begin
+    insert into audit
+    values (new.ID, new.name);
+end;
+
+
+length用法
+select id, length(string) - length(replace(string,',','')) as cnt
+from strings;
+
+right,left用法
+select first_name
+from employees
+order by right(first_name,2)
+
+聚合函数group_concat
+select dept_no, group_concat(emp_no) as employees
+from dept_emp
+group by dept_no;

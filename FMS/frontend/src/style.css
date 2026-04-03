@@ -1,0 +1,74 @@
+:root {
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #111827;
+  background: #f5f6f8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+body {
+  background: #f5f6f8;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.app-page {
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(180deg, #f4f7fb 0%, #eef2f7 100%);
+}
+
+.app-card {
+  border: none !important;
+  border-radius: 16px !important;
+}
+
+.app-mt16 {
+  margin-top: 16px;
+}
+
+.app-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.app-query-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+}
+
+@media (max-width: 960px) {
+  .app-page {
+    padding: 14px;
+  }
+}

@@ -1,0 +1,190 @@
+package com.example.fms.modules.reimburse.controller;
+
+import com.example.fms.common.api.ApiResponse;
+import com.example.fms.common.api.PageResult;
+import com.example.fms.common.exception.BizException;
+import com.example.fms.modules.reimburse.dto.*;
+import com.example.fms.modules.reimburse.service.ReimburseService;
+import com.example.fms.modules.shared.support.UserSupport;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+@RestController
+@RequestMapping({"/api/reimburse", "/api/reimb"})
+public class ReimburseController {
+
+    private final ReimburseService reimburseService;
+    private final UserSupport userSupport;
+
+    public ReimburseController(ReimburseService reimburseService, UserSupport userSupport) {
+        this.reimburseService = reimburseService;
+        this.userSupport = userSupport;
+    }
+
+    @PostMapping("/page")
+    public ApiResponse<PageResult<ReimburseVO>> page(@RequestBody(required = false) ReimbursePageReq req) {
+        return ApiResponse.ok(reimburseService.page(req));
+    }
+
+    @GetMapping("/detail")
+    public ApiResponse<ReimburseDetailVO> detail(@RequestParam("id") Long id) {
+        return ApiResponse.ok(reimburseService.detail(id));
+    }
+
+    @PostMapping("/create")
+    public ApiResponse<Long> create(@RequestBody ReimburseCreateReq req) {
+        return ApiResponse.ok(reimburseService.create(req));
+    }
+
+    @PostMapping("/update")
+    public ApiResponse<Void> update(@RequestBody ReimburseUpdateReq req) {
+        reimburseService.update(req);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/submit")
+    public ApiResponse<Void> submit(@RequestBody ReimburseSubmitReq req) {
+        reimburseService.submit(req);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/withdraw")
+    public ApiResponse<Void> withdraw(@RequestBody ReimburseSubmitReq req) {
+        reimburseService.withdraw(req);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/audit")
+    public ApiResponse<Void> audit(@RequestBody ReimburseAuditReq req) {
+        reimburseService.audit(req);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ReimburseUploadVO> upload(@RequestParam("file") MultipartFile file,
+                                                 @RequestParam(value = "fileCategory", required = false) String fileCategory) throws IOException {
+        if (file == null || file.isEmpty()) return ApiResponse.fail(400, "请选择文件");
+        String dateDir = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        Path root = choosePrimaryUploadsRoot().resolve("reimburse").resolve(dateDir);
+        Files.createDirectories(root);
+        String original = StringUtils.cleanPath(file.getOriginalFilename() == null ? "file" : file.getOriginalFilename());
+        String ext = "";
+        int idx = original.lastIndexOf('.');
+        if (idx >= 0) ext = original.substring(idx);
+        String storage = UUID.randomUUID().toString().replace("-", "") + ext;
+        Path dest = root.resolve(storage);
+        Files.copy(file.getInputStream(), dest, StandardCopyOption.REPLACE_EXISTING);
+        ReimburseUploadVO vo = new ReimburseUploadVO();
+        vo.setFileCategory(fileCategory == null ? "OTHER" : fileCategory.trim().toUpperCase());
+        vo.setOriginalName(original);
+        vo.setStorageName(storage);
+        vo.setFileUrl("/uploads/reimburse/" + dateDir + "/" + storage);
+        vo.setFileSize(file.getSize());
+        return ApiResponse.ok(vo);
+    }
+
+    @GetMapping("/file/download")
+    public ResponseEntity<Resource> download(@RequestParam("fileUrl") String fileUrl,
+                                             @RequestParam(value = "name", required = false) String name) throws IOException {
+        userSupport.currentUser();
+        String normalized = normalizeFileUrl(fileUrl);
+        if (!normalized.startsWith("/uploads/reimburse/")) throw BizException.badRequest("文件路径非法");
+
+        String relativePath = normalized.replaceFirst("^/uploads/", "");
+        Path target = resolveExistingFile(relativePath);
+        if (target == null) throw BizException.notFound("文件不存在");
+
+        Resource resource = new UrlResource(target.toUri());
+        String filename = StringUtils.hasText(name) ? name.trim() : target.getFileName().toString();
+        String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8.name()).replace("+", "%20");
+        MediaType mediaType = MediaTypeFactory.getMediaType(filename).orElse(MediaType.APPLICATION_OCTET_STREAM);
+        long contentLength = Files.size(target);
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .contentLength(contentLength)
+                .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedFilename)
+                .body(resource);
+    }
+
+
+    private String normalizeFileUrl(String fileUrl) {
+        String raw = fileUrl == null ? "" : fileUrl.trim();
+        if (!StringUtils.hasText(raw)) return "";
+        String decoded = raw;
+        try {
+            decoded = URLDecoder.decode(raw, StandardCharsets.UTF_8.name());
+        } catch (Exception ignored) {
+        }
+        decoded = decoded.replace('\\', '/').trim();
+        int uploadsIdx = decoded.indexOf("/uploads/");
+        if (uploadsIdx >= 0) {
+            decoded = decoded.substring(uploadsIdx);
+        } else if (decoded.startsWith("uploads/")) {
+            decoded = "/" + decoded;
+        } else if (decoded.startsWith("reimburse/")) {
+            decoded = "/uploads/" + decoded;
+        }
+        return StringUtils.cleanPath(decoded);
+    }
+
+    private Path resolveExistingFile(String relativePath) {
+        for (Path uploadsRoot : resolveUploadsRoots()) {
+            Path candidate = uploadsRoot.resolve(relativePath).normalize();
+            if (!candidate.startsWith(uploadsRoot)) continue;
+            if (Files.exists(candidate) && Files.isRegularFile(candidate)) return candidate;
+        }
+        return null;
+    }
+
+    private Path choosePrimaryUploadsRoot() {
+        List<Path> roots = resolveUploadsRoots();
+        for (Path root : roots) {
+            if (Files.exists(root)) return root;
+        }
+        return roots.get(0);
+    }
+
+    private List<Path> resolveUploadsRoots() {
+        Path userDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath().normalize();
+        Set<Path> candidates = new LinkedHashSet<>();
+        List<Path> bases = new ArrayList<>();
+        bases.add(userDir);
+        if (userDir.getParent() != null) bases.add(userDir.getParent().normalize());
+        if (userDir.getParent() != null && userDir.getParent().getParent() != null) {
+            bases.add(userDir.getParent().getParent().normalize());
+        }
+
+        for (Path base : bases) {
+            candidates.add(base.resolve("uploads").normalize());
+            candidates.add(base.resolve("backend").resolve("uploads").normalize());
+            candidates.add(base.resolve("FMS").resolve("uploads").normalize());
+            candidates.add(base.resolve("FMS").resolve("backend").resolve("uploads").normalize());
+        }
+        return new ArrayList<>(candidates);
+    }
+}

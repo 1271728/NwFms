@@ -53,8 +53,8 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         List<String> roleCodes = req.getRoleCodes() == null ? Collections.emptyList() : req.getRoleCodes();
         roleCodes = roleCodes.stream().filter(s -> !isBlank(s)).map(String::trim).distinct().collect(Collectors.toList());
-        if (roleCodes.isEmpty()) {
-            throw BizException.badRequest("请至少选择一个角色roleCodes");
+        if (roleCodes.size() != 1) {
+            throw BizException.badRequest("每个用户只能分配一个角色");
         }
 
         SysUser u = new SysUser();
@@ -132,7 +132,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (req == null || req.getUserId() == null) throw BizException.badRequest("userId不能为空");
         List<String> roleCodes = req.getRoleCodes() == null ? Collections.emptyList() : req.getRoleCodes();
         roleCodes = roleCodes.stream().filter(s -> !isBlank(s)).map(String::trim).distinct().collect(Collectors.toList());
-        if (roleCodes.isEmpty()) throw BizException.badRequest("roleCodes不能为空");
+        if (roleCodes.size() != 1) throw BizException.badRequest("每个用户只能分配一个角色");
 
         SysUser u = sysUserMapper.selectById(req.getUserId());
         if (u == null) throw BizException.notFound("用户不存在");

@@ -280,9 +280,8 @@
             <el-form-item label="角色" prop="roleCodes">
               <el-select
                 v-model="editDialog.form.roleCodes"
-                multiple
                 filterable
-                placeholder="请选择角色"
+                placeholder="请选择角色（单选）"
                 style="width: 100%"
               >
                 <el-option
@@ -313,9 +312,8 @@
         <el-form-item label="角色">
           <el-select
             v-model="roleDialog.roleCodes"
-            multiple
             filterable
-            placeholder="请选择角色"
+            placeholder="请选择角色（单选）"
             style="width: 100%"
           >
             <el-option
@@ -387,7 +385,7 @@ const editDialog = reactive({
     email: "",
     unitId: undefined as number | undefined,
     status: 1,
-    roleCodes: [] as string[],
+    roleCodes: "" as string,
   },
 });
 
@@ -396,7 +394,7 @@ const roleDialog = reactive({
   saving: false,
   userId: 0,
   userLabel: "",
-  roleCodes: [] as string[],
+  roleCodes: "" as string,
 });
 
 const editRules: FormRules = {
@@ -404,7 +402,7 @@ const editRules: FormRules = {
   password: [{ required: true, message: "请输入密码", trigger: "blur" }],
   realName: [{ required: true, message: "请输入姓名", trigger: "blur" }],
   unitId: [{ required: true, message: "请选择单位", trigger: "change" }],
-  roleCodes: [{ required: true, message: "请选择至少一个角色", trigger: "change" }],
+  roleCodes: [{ required: true, message: "请选择一个角色", trigger: "change" }],
 };
 
 
@@ -468,7 +466,7 @@ function resetEditForm() {
   editDialog.form.email = "";
   editDialog.form.unitId = currentOrgId.value ?? undefined;
   editDialog.form.status = 1;
-  editDialog.form.roleCodes = [];
+  editDialog.form.roleCodes = "";
 }
 
 function openCreate() {
@@ -488,13 +486,13 @@ function openEdit(row: UserVO) {
   editDialog.form.email = row.email || "";
   editDialog.form.unitId = row.unitId || undefined;
   editDialog.form.status = row.status;
-  editDialog.form.roleCodes = [...(row.roles || [])];
+  editDialog.form.roleCodes = row.roles?.[0] || "";
 }
 
 function openRoleDialog(row: UserVO) {
   roleDialog.userId = row.id;
   roleDialog.userLabel = `${row.realName}（${row.username}）`;
-  roleDialog.roleCodes = [...(row.roles || [])];
+  roleDialog.roleCodes = row.roles?.[0] || "";
   roleDialog.visible = true;
 }
 
@@ -511,7 +509,7 @@ async function submitEdit() {
         email: editDialog.form.email,
         unitId: editDialog.form.unitId,
         status: editDialog.form.status,
-        roleCodes: editDialog.form.roleCodes,
+        roleCodes: [editDialog.form.roleCodes],
       });
       ElMessage.success("用户创建成功");
     } else {
@@ -533,13 +531,13 @@ async function submitEdit() {
 }
 
 async function submitRoles() {
-  if (!roleDialog.roleCodes.length) {
-    ElMessage.warning("请至少选择一个角色");
+  if (!roleDialog.roleCodes) {
+    ElMessage.warning("请选择一个角色");
     return;
   }
   roleDialog.saving = true;
   try {
-    await apiUserSetRoles(roleDialog.userId, roleDialog.roleCodes);
+    await apiUserSetRoles(roleDialog.userId, [roleDialog.roleCodes]);
     ElMessage.success("角色分配成功");
     roleDialog.visible = false;
     loadPage();

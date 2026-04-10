@@ -146,7 +146,7 @@
     <el-dialog v-model="editDialog.visible" :title="editDialog.mode === 'create' ? '新增项目草稿' : '编辑项目'" width="980px" destroy-on-close>
       <el-form ref="editFormRef" :model="editDialog.form" :rules="editRules" label-width="100px">
         <el-row :gutter="14">
-          <el-col :span="12">
+          <el-col v-if="editDialog.mode === 'edit'" :span="12">
             <el-form-item label="项目编号" prop="projectCode">
               <el-input
                 :model-value="editDialog.form.projectCode || '保存草稿后自动生成'"
@@ -155,7 +155,7 @@
               />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="editDialog.mode === 'create' ? 24 : 12">
             <el-form-item label="项目类型" prop="projectType">
               <el-input v-model="editDialog.form.projectType" placeholder="纵向 / 横向 / 校级 / 教改等" />
             </el-form-item>

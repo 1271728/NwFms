@@ -506,6 +506,20 @@ function defaultControlMode(value?: number | null): ControlMode {
   return Number(value || 0) > 0 ? '禁止超支' : '不控制';
 }
 
+function buildCompatProjectCode(projectType?: string) {
+  const raw = String(projectType || '').trim();
+  const typeCode = /^\d{2}$/.test(raw)
+    ? raw
+    : raw.includes('纵') ? '01'
+      : raw.includes('横') ? '02'
+        : raw.includes('校') ? '03'
+          : raw.includes('教改') ? '04'
+            : '99';
+  const year = String(new Date().getFullYear());
+  const suffix = String(Date.now() % 10000).padStart(4, '0');
+  return `PJT${typeCode}${year}${suffix}`;
+}
+
 function changeScope(scope: ScopeKey) {
   activeScope.value = scope;
   searchForm.todoOnly = scope === 'todo';
@@ -582,6 +596,10 @@ async function openEdit(row: ProjectVO) {
 
 async function submitEdit() {
   await editFormRef.value?.validate();
+  if (!editDialog.form.projectName.trim()) {
+    ElMessage.warning('项目名称不能为空');
+    return;
+  }
   if (editDialog.form.startDate && editDialog.form.endDate && editDialog.form.startDate > editDialog.form.endDate) {
     ElMessage.warning('结束日期不能早于开始日期');
     return;
@@ -605,7 +623,7 @@ async function submitEdit() {
       budgetLines,
     };
     if (editDialog.mode === 'create') {
-      await apiProjectCreate(payload);
+      await apiProjectCreate({ ...payload, projectCode: buildCompatProjectCode(payload.projectType) });
     } else if (editDialog.form.id) {
       await apiProjectUpdate({ id: editDialog.form.id, ...payload });
       ElMessage.success('项目已更新');

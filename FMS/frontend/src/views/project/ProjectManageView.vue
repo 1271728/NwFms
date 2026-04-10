@@ -156,13 +156,13 @@
             </el-form-item>
           </el-col>
           <el-col :span="editDialog.mode === 'create' ? 24 : 12">
-            <el-form-item label="项目类型" prop="projectType">
-              <el-input v-model="editDialog.form.projectType" placeholder="纵向 / 横向 / 校级 / 教改等" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
             <el-form-item label="项目名称" prop="projectName">
               <el-input v-model="editDialog.form.projectName" placeholder="请输入项目名称" maxlength="255" show-word-limit />
+            </el-form-item>
+          </el-col>
+          <el-col :span="editDialog.mode === 'create' ? 24 : 12">
+            <el-form-item label="项目类型" prop="projectType">
+              <el-input v-model="editDialog.form.projectType" placeholder="纵向 / 横向 / 校级 / 教改等" />
             </el-form-item>
           </el-col>
           <el-col :span="12">

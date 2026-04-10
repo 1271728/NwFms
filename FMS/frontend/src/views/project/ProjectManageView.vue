@@ -606,7 +606,6 @@ async function submitEdit() {
     };
     if (editDialog.mode === 'create') {
       await apiProjectCreate(payload);
-      ElMessage.success('项目草稿已创建');
     } else if (editDialog.form.id) {
       await apiProjectUpdate({ id: editDialog.form.id, ...payload });
       ElMessage.success('项目已更新');

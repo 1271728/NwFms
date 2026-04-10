@@ -414,7 +414,6 @@ onMounted(async () => {
 .pager { display:flex; justify-content:flex-end; margin-top:16px; }
 .section-head { display:flex; align-items:center; gap:14px; margin:16px 0 12px; }
 .section-title { font-size:18px; font-weight:700; color:#1f2937; }
-.section-tip { color:#64748b; font-size:13px; flex:1; }
 .detail-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; }
 .detail-item { border-radius:14px; background:#f8fafc; padding:14px 16px; display:flex; flex-direction:column; gap:8px; }
 .detail-item.full { grid-column:1 / -1; }

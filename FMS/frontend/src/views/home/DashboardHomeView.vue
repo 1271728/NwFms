@@ -20,7 +20,6 @@
       <div class="entry-grid">
         <div v-for="item in quickLinks" :key="item.path" class="entry-item" @click="go(item.path)">
           <div class="entry-name">{{ item.label }}</div>
-          <div class="entry-tip">{{ item.tip }}</div>
         </div>
       </div>
     </el-card>
@@ -38,14 +37,13 @@ const user = useUserStore();
 const stats = reactive<DashboardStatsResp>({ role: '', unreadCount: 0, cards: [] });
 
 const quickLinks = computed(() => {
-  const links: Array<{ path: string; label: string; tip: string }> = [];
-  if (user.isAdmin) links.push({ path: '/admin/users', label: '用户与权限', tip: '维护组织、账号状态和角色配置' });
-  if (user.canViewProjectModule) links.push({ path: '/project/manage', label: '项目管理', tip: '查看项目、成员与立项状态' });
-  if (user.canViewBudgetOverview) links.push({ path: '/budget/overview', label: '预算总览', tip: '查看项目预算、余额和执行率' });
-  if (user.canManageBudgetAdjust) links.push({ path: '/budget/adjust', label: '预算调整单', tip: '发起或处理预算调整流程' });
-  if (user.canManageReimburse) links.push({ path: '/reimburse/manage', label: '报销单管理', tip: '维护报销单、明细与提交流程' });
-  if (user.canUseWorkflowCenter) links.push({ path: '/workflow/center', label: '审批中心', tip: '集中处理待办、已办和审批轨迹' });
-  links.push({ path: '/msg/center', label: '消息中心', tip: '查看驳回、完成和流程提醒消息' });
+  const links: Array<{ path: string; label: string }> = [];
+  if (user.isAdmin) links.push({ path: '/admin/users', label: '用户与权限' });
+  if (user.canViewProjectModule) links.push({ path: '/project/manage', label: '项目管理' });
+  if (user.canViewBudgetOverview) links.push({ path: '/budget/overview', label: '预算总览' });
+  if (user.canManageBudgetAdjust) links.push({ path: '/budget/adjust', label: '预算调整单' });
+  if (user.canManageReimburse) links.push({ path: '/reimburse/manage', label: '报销单管理' });
+  if (user.canUseWorkflowCenter) links.push({ path: '/workflow/center', label: '审批中心' });
   return links;
 });
 
@@ -76,7 +74,6 @@ onMounted(loadStats);
 .entry-item { padding: 18px; border-radius: 14px; border: 1px solid #e5e7eb; background:#fafafa; cursor:pointer; transition:all .18s ease; }
 .entry-item:hover { transform: translateY(-1px); border-color:#cfd4dc; background:#fff; }
 .entry-name { font-size: 17px; font-weight: 700; color:#111827; }
-.entry-tip { margin-top: 8px; color:#6b7280; line-height:1.8; font-size:13px; }
 @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 960px) { .entry-grid, .stats-grid { grid-template-columns: 1fr; } .page-head { flex-direction:column; align-items:flex-start; } }
 </style>

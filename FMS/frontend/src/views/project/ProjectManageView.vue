@@ -190,7 +190,6 @@
         <div class="section-head">
           <div>
             <div class="section-title">预算分配</div>
-            <div class="section-tip">按科研预算科目一次性分配金额。提交项目审批时，预算分配将一并校验且需与预算总额一致。</div>
           </div>
           <el-button plain @click="resetBudgetAmounts">清空分配金额</el-button>
         </div>
@@ -750,7 +749,6 @@ onMounted(async () => {
 .pager-wrap { margin-top: 16px; display: flex; justify-content: flex-end; }
 .section-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin: 10px 0 12px; }
 .section-title { font-size: 16px; font-weight: 700; color: #0f172a; }
-.section-tip { margin-top: 4px; color:#64748b; font-size:13px; }
 .subject-name-cell { color: #0f172a; font-weight: 500; }
 .budget-summary { display:flex; justify-content:flex-end; gap:22px; margin-top:12px; color:#475569; flex-wrap:wrap; }
 .budget-summary b { color:#0f172a; }

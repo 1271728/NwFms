@@ -5,7 +5,6 @@
         <div class="card-head">
           <div>
             <div class="head-title">审批中心</div>
-            <div class="head-tip">统一处理报销单与预算调整单的待办、已办和流转轨迹。</div>
           </div>
           <el-button @click="fetchPage(1)">刷新</el-button>
         </div>
@@ -499,7 +498,6 @@ onMounted(async () => {
 .mt16 { margin-top: 16px; }
 .card-head { display:flex; justify-content:space-between; align-items:center; gap:16px; }
 .head-title { font-size: 22px; font-weight: 700; color: #111827; }
-.head-tip { margin-top: 6px; color: #6b7280; font-size: 13px; }
 .query-row { margin-top: 2px; }
 .tab-row :deep(.el-tabs__header) { margin-bottom: 12px; }
 .w140 { width: 140px; }

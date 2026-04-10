@@ -115,7 +115,6 @@ const metaMap: Record<string, string> = {
   "/budget/adjust": "预算调整单",
   "/reimburse/manage": "报销单管理",
   "/workflow/center": "审批中心",
-  "/msg/center": "消息中心",
 };
 
 const currentTitle = computed(() => metaMap[route.path] || "科研经费报销管理系统");
@@ -128,7 +127,6 @@ const menuItems = computed(() => {
   if (user.canManageBudgetAdjust) items.push({ path: "/budget/adjust", label: "预算调整单" });
   if (user.canManageReimburse) items.push({ path: "/reimburse/manage", label: "报销单管理" });
   if (user.canUseWorkflowCenter) items.push({ path: "/workflow/center", label: "审批中心" });
-  items.push({ path: "/msg/center", label: "消息中心" });
   return items;
 });
 

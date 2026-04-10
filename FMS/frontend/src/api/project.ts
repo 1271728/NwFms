@@ -79,7 +79,7 @@ export interface ProjectBudgetLineReq {
 }
 
 export interface ProjectCreateReq {
-  projectCode: string;
+  projectCode?: string;
   projectName: string;
   projectType?: string;
   startDate?: string;
@@ -102,7 +102,7 @@ export function apiProjectDetail(id: number) {
 }
 
 export function apiProjectCreate(data: ProjectCreateReq) {
-  return http.post("/project/create", data);
+  return http.post<any, { id: number }>("/project/create", data);
 }
 
 export function apiProjectUpdate(data: ProjectUpdateReq) {

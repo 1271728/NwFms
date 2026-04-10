@@ -17,7 +17,6 @@ const router = createRouter({
         { path: "/budget/adjust", component: () => import("@/views/budget/BudgetAdjustManageView.vue"), meta: { roles: ["PI", "ADMIN"] } },
         { path: "/reimburse/manage", component: () => import("@/views/reimburse/ReimburseManageView.vue"), meta: { roles: ["PI", "ADMIN", "UNIT_ADMIN", "FINANCE"] } },
         { path: "/workflow/center", component: () => import("@/views/workflow/WorkflowCenterView.vue"), meta: { roles: ["ADMIN", "UNIT_ADMIN", "FINANCE"] } },
-        { path: "/msg/center", component: () => import("@/views/msg/MsgCenterView.vue"), meta: { roles: ["PI", "ADMIN", "UNIT_ADMIN", "FINANCE"] } },
       ],
     },
   ],

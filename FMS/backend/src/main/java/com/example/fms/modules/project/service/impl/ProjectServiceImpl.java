@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -105,13 +106,10 @@ public class ProjectServiceImpl implements ProjectService {
         if (req == null) throw BizException.badRequest("请求不能为空");
         CurrentUser cu = currentUser();
         ensureCanCreate(cu);
-        validateBaseFields(req.getProjectCode(), req.getProjectName());
-        if (projectMapper.countByProjectCode(req.getProjectCode().trim(), null) > 0) {
-            throw BizException.conflict("项目编号已存在");
-        }
+        validateBaseFields(req.getProjectName());
 
         ProjectEntity entity = new ProjectEntity();
-        entity.setProjectCode(req.getProjectCode().trim());
+        entity.setProjectCode(generateProjectCode(req.getProjectType()));
         entity.setProjectName(req.getProjectName().trim());
         entity.setProjectType(safeTrim(req.getProjectType()));
         entity.setPrincipalUserId(cu.user.getId());
@@ -135,11 +133,7 @@ public class ProjectServiceImpl implements ProjectService {
         CurrentUser cu = currentUser();
         ProjectEntity old = requireProject(req.getId());
         ensureEditable(old, cu);
-        validateBaseFields(req.getProjectCode(), req.getProjectName());
-        if (projectMapper.countByProjectCode(req.getProjectCode().trim(), req.getId()) > 0) {
-            throw BizException.conflict("项目编号已存在");
-        }
-        old.setProjectCode(req.getProjectCode().trim());
+        validateBaseFields(req.getProjectName());
         old.setProjectName(req.getProjectName().trim());
         old.setProjectType(safeTrim(req.getProjectType()));
         old.setStartDate(blankToNull(req.getStartDate()));
@@ -272,8 +266,31 @@ public class ProjectServiceImpl implements ProjectService {
         projectAuditLogMapper.insert(req.getProjectId(), "移除项目成员", entity.getStatus(), entity.getStatus(), cu.user.getId(), String.valueOf(req.getUserId()));
     }
 
-    private void validateBaseFields(String projectCode, String projectName) {
-        if (isBlank(projectCode) || isBlank(projectName)) throw BizException.badRequest("projectCode/projectName不能为空");
+    private void validateBaseFields(String projectName) {
+        if (isBlank(projectName)) throw BizException.badRequest("projectName不能为空");
+    }
+
+    private String generateProjectCode(String projectType) {
+        String typeCode = resolveProjectTypeCode(projectType);
+        String year = String.valueOf(LocalDate.now().getYear());
+        String prefix = "PJT" + typeCode + year;
+        for (int seq = 1; seq <= 9999; seq++) {
+            String candidate = prefix + String.format("%04d", seq);
+            if (projectMapper.countByProjectCode(candidate, null) <= 0) return candidate;
+        }
+        throw BizException.serverError("项目编号生成失败，请稍后重试");
+    }
+
+    private String resolveProjectTypeCode(String projectType) {
+        String type = safeTrim(projectType);
+        if (isBlank(type)) return "99";
+        if (type.matches("\\d{2}")) return type;
+        String upper = type.toUpperCase();
+        if (type.contains("纵") || upper.contains("ZX")) return "01";
+        if (type.contains("横") || upper.contains("HX")) return "02";
+        if (type.contains("校") || upper.contains("XJ")) return "03";
+        if (type.contains("教改") || upper.contains("JG")) return "04";
+        return "99";
     }
 
     private void validateSubmitFields(ProjectEntity entity) {

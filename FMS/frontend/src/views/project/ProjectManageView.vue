@@ -146,19 +146,23 @@
     <el-dialog v-model="editDialog.visible" :title="editDialog.mode === 'create' ? '新增项目草稿' : '编辑项目'" width="980px" destroy-on-close>
       <el-form ref="editFormRef" :model="editDialog.form" :rules="editRules" label-width="100px">
         <el-row :gutter="14">
-          <el-col :span="12">
+          <el-col v-if="editDialog.mode === 'edit'" :span="12">
             <el-form-item label="项目编号" prop="projectCode">
-              <el-input v-model="editDialog.form.projectCode" placeholder="如：PJT-2026-001" />
+              <el-input
+                :model-value="editDialog.form.projectCode || '保存草稿后自动生成'"
+                readonly
+                placeholder="系统自动生成（示例：PJT0120260001）"
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="项目类型" prop="projectType">
-              <el-input v-model="editDialog.form.projectType" placeholder="纵向 / 横向 / 校级 / 教改等" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
+          <el-col :span="editDialog.mode === 'create' ? 24 : 12">
             <el-form-item label="项目名称" prop="projectName">
               <el-input v-model="editDialog.form.projectName" placeholder="请输入项目名称" maxlength="255" show-word-limit />
+            </el-form-item>
+          </el-col>
+          <el-col :span="editDialog.mode === 'create' ? 24 : 12">
+            <el-form-item label="项目类型" prop="projectType">
+              <el-input v-model="editDialog.form.projectType" placeholder="纵向 / 横向 / 校级 / 教改等" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -186,7 +190,6 @@
         <div class="section-head">
           <div>
             <div class="section-title">预算分配</div>
-            <div class="section-tip">按科研预算科目一次性分配金额。提交项目审批时，预算分配将一并校验且需与预算总额一致。</div>
           </div>
           <el-button plain @click="resetBudgetAmounts">清空分配金额</el-button>
         </div>
@@ -402,7 +405,6 @@ const memberDialog = reactive({
 });
 
 const editRules: FormRules = {
-  projectCode: [{ required: true, message: '请输入项目编号', trigger: 'blur' }],
   projectName: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
   projectType: [{ required: true, message: '请输入项目类型', trigger: 'blur' }],
   startDate: [{ required: true, message: '请选择开始日期', trigger: 'change' }],
@@ -503,6 +505,20 @@ function defaultControlMode(value?: number | null): ControlMode {
   return Number(value || 0) > 0 ? '禁止超支' : '不控制';
 }
 
+function buildCompatProjectCode(projectType?: string) {
+  const raw = String(projectType || '').trim();
+  const typeCode = /^\d{2}$/.test(raw)
+    ? raw
+    : raw.includes('纵') ? '01'
+      : raw.includes('横') ? '02'
+        : raw.includes('校') ? '03'
+          : raw.includes('教改') ? '04'
+            : '99';
+  const year = String(new Date().getFullYear());
+  const suffix = String(Date.now() % 10000).padStart(4, '0');
+  return `PJT${typeCode}${year}${suffix}`;
+}
+
 function changeScope(scope: ScopeKey) {
   activeScope.value = scope;
   searchForm.todoOnly = scope === 'todo';
@@ -579,6 +595,10 @@ async function openEdit(row: ProjectVO) {
 
 async function submitEdit() {
   await editFormRef.value?.validate();
+  if (!editDialog.form.projectName.trim()) {
+    ElMessage.warning('项目名称不能为空');
+    return;
+  }
   if (editDialog.form.startDate && editDialog.form.endDate && editDialog.form.startDate > editDialog.form.endDate) {
     ElMessage.warning('结束日期不能早于开始日期');
     return;
@@ -593,7 +613,6 @@ async function submitEdit() {
   editDialog.saving = true;
   try {
     const payload = {
-      projectCode: editDialog.form.projectCode,
       projectName: editDialog.form.projectName,
       projectType: editDialog.form.projectType,
       startDate: editDialog.form.startDate,
@@ -603,8 +622,7 @@ async function submitEdit() {
       budgetLines,
     };
     if (editDialog.mode === 'create') {
-      await apiProjectCreate(payload);
-      ElMessage.success('项目草稿已创建');
+      await apiProjectCreate({ ...payload, projectCode: buildCompatProjectCode(payload.projectType) });
     } else if (editDialog.form.id) {
       await apiProjectUpdate({ id: editDialog.form.id, ...payload });
       ElMessage.success('项目已更新');
@@ -731,7 +749,6 @@ onMounted(async () => {
 .pager-wrap { margin-top: 16px; display: flex; justify-content: flex-end; }
 .section-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin: 10px 0 12px; }
 .section-title { font-size: 16px; font-weight: 700; color: #0f172a; }
-.section-tip { margin-top: 4px; color:#64748b; font-size:13px; }
 .subject-name-cell { color: #0f172a; font-weight: 500; }
 .budget-summary { display:flex; justify-content:flex-end; gap:22px; margin-top:12px; color:#475569; flex-wrap:wrap; }
 .budget-summary b { color:#0f172a; }

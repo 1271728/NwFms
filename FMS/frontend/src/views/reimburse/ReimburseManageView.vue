@@ -96,7 +96,6 @@
         <div class="section-head">
           <div>
             <div class="section-title">发票 / 凭证附件</div>
-            <div class="section-tip">提交审批前至少上传一份发票或凭证，支持多文件。</div>
           </div>
           <div class="upload-actions">
             <el-upload :show-file-list="false" :auto-upload="false" accept="*" :on-change="(uploadFile: any) => handleUpload(uploadFile?.raw as File, 'INVOICE')">
@@ -120,8 +119,6 @@
         <div class="section-head mt12">
           <div>
             <div class="section-title">报销明细</div>
-            <div class="section-tip" v-if="hasTravelSubsidyRows">差旅类科目支持补助计算：总额 = 基础金额 + 差旅天数 × 每日补助。</div>
-            <div class="section-tip" v-else>当前未选择差旅类科目，仅需填写基础金额。</div>
           </div>
           <el-button type="primary" plain @click="addItem">新增明细</el-button>
         </div>
@@ -594,7 +591,6 @@ onMounted(async () => {
 .op-list { display:flex; gap:6px; flex-wrap:wrap; }
 .section-head { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:14px 0 10px; }
 .section-title { font-size:16px; font-weight:700; color:#1f2937; }
-.section-tip { margin-top:4px; color:#64748b; font-size:13px; }
 .upload-actions { display:flex; gap:10px; flex-wrap:wrap; }
 .attach-list { display:grid; gap:10px; margin-bottom:16px; }
 .attach-item, .drawer-attach-item { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; }

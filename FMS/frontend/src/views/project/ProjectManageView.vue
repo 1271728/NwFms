@@ -148,7 +148,11 @@
         <el-row :gutter="14">
           <el-col :span="12">
             <el-form-item label="项目编号" prop="projectCode">
-              <el-input v-model="editDialog.form.projectCode" placeholder="如：PJT-2026-001" />
+              <el-input
+                :model-value="editDialog.form.projectCode || '保存草稿后自动生成'"
+                readonly
+                placeholder="系统自动生成（示例：PJT0120260001）"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -402,7 +406,6 @@ const memberDialog = reactive({
 });
 
 const editRules: FormRules = {
-  projectCode: [{ required: true, message: '请输入项目编号', trigger: 'blur' }],
   projectName: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],
   projectType: [{ required: true, message: '请输入项目类型', trigger: 'blur' }],
   startDate: [{ required: true, message: '请选择开始日期', trigger: 'change' }],
@@ -593,7 +596,6 @@ async function submitEdit() {
   editDialog.saving = true;
   try {
     const payload = {
-      projectCode: editDialog.form.projectCode,
       projectName: editDialog.form.projectName,
       projectType: editDialog.form.projectType,
       startDate: editDialog.form.startDate,

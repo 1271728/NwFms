@@ -79,7 +79,7 @@ export interface ProjectBudgetLineReq {
 }
 
 export interface ProjectCreateReq {
-  projectCode: string;
+  projectCode?: string;
   projectName: string;
   projectType?: string;
   startDate?: string;
